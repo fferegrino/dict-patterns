@@ -1,5 +1,6 @@
-from json_patterns.patterns import compile_template
 import pytest
+
+from json_patterns.patterns import compile_template
 
 
 def test_compile_template():
