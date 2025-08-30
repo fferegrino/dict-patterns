@@ -91,11 +91,8 @@ wheels = [
 
 [[package]]
 name = "dict-patterns"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "." }
-dependencies = [
-    { name = "bump-my-version" },
-]
 
 [package.optional-dependencies]
 pytest = [
@@ -110,10 +107,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "bump-my-version", specifier = ">=1.2.1" },
-    { name = "pytest", marker = "extra == 'pytest'", specifier = ">=8.4.1" },
-]
+requires-dist = [{ name = "pytest", marker = "extra == 'pytest'", specifier = ">=8.4.1" }]
 provides-extras = ["pytest"]
 
 [package.metadata.requires-dev]
