@@ -7,6 +7,13 @@ corresponding values in the other object. Matched values are stored and can
 be reused for consistency across multiple matches.
 """
 
+from json_patterns.exceptions import (
+    JSONKeyMismatchError,
+    JSONListLengthMismatchError,
+    JSONPatternMatchError,
+    JSONPatternValueInconsistencyError,
+    JSONValueMismatchError,
+)
 from json_patterns.patterns import compile_template
 
 
@@ -133,7 +140,7 @@ class JSONMatcher:
 
         """
         if template.keys() != actual.keys():
-            raise ValueError(f"Keys at {path} do not match")
+            raise JSONKeyMismatchError(path)
 
         for key, template_value in template.items():
             actual_value = actual[key]
@@ -162,7 +169,7 @@ class JSONMatcher:
         elif isinstance(template_value, str) and isinstance(actual_value, str):
             self._match_string(template_value, actual_value, path)
         elif template_value != actual_value:
-            raise ValueError(f"Values at {path} do not match")
+            raise JSONValueMismatchError(path, template_value, actual_value)
 
     def _match_dict(self, template: dict, actual: dict, path: str) -> None:
         """Match two dictionary values recursively."""
@@ -171,7 +178,7 @@ class JSONMatcher:
     def _match_list(self, template: list, actual: list, path: str) -> None:
         """Match two list values element by element."""
         if len(template) != len(actual):
-            raise ValueError(f"Lists at {path} do not match, they have different lengths")
+            raise JSONListLengthMismatchError(path)
 
         for i, (template_item, actual_item) in enumerate(zip(template, actual, strict=True)):
             self._match_value(template_item, actual_item, f"{path}[{i}]")
@@ -181,19 +188,19 @@ class JSONMatcher:
         if not self.pattern_handlers:
             # No pattern handlers, do direct comparison
             if template != actual:
-                raise ValueError(f"Strings at {path} do not match")
+                raise JSONValueMismatchError(path, template, actual)
             return
 
         regex, fields = compile_template(template, self.pattern_handlers)
         if not fields:
             # No patterns in template, do direct comparison
             if template != actual:
-                raise ValueError(f"Strings at {path} do not match")
+                raise JSONValueMismatchError(path, template, actual)
             return
 
         match = regex.match(actual)
         if not match:
-            raise ValueError(f"Strings at {path} = {actual} do not match the pattern {template}")
+            raise JSONPatternMatchError(path, template, actual)
 
         self._extract_pattern_values(match, fields, path)
 
@@ -209,7 +216,9 @@ class JSONMatcher:
             if identifier in self.values[pattern]:
                 # If we have seen this identifier on this pattern we just compare the values
                 if self.values[pattern][identifier] != matched_value:
-                    raise ValueError(f"Values at {path}.{identifier} do not match")
+                    raise JSONPatternValueInconsistencyError(
+                        path, identifier, self.values[pattern][identifier], matched_value
+                    )
             else:
                 # If we have not seen this identifier on this pattern we store the value
                 self.values[pattern][identifier] = matched_value

@@ -1,5 +1,11 @@
 import pytest
 
+from json_patterns.exceptions import (
+    JSONKeyMismatchError,
+    JSONListLengthMismatchError,
+    JSONPatternMatchError,
+    JSONPatternValueInconsistencyError,
+)
 from json_patterns.json_matcher import JSONMatcher
 
 
@@ -243,7 +249,7 @@ def test_json_matcher_error_mismatched_keys():
     template = {"name": "John", "age": 30}
     actual = {"name": "John", "age": 30, "email": "john@example.com"}
 
-    with pytest.raises(ValueError, match="Keys at \\$ do not match"):
+    with pytest.raises(JSONKeyMismatchError, match="Keys at \\$ do not match"):
         json_matcher.match(template, actual)
 
 
@@ -254,7 +260,9 @@ def test_json_matcher_error_different_list_lengths():
     template = {"items": [{"id": 1}, {"id": 2}]}
     actual = {"items": [{"id": 1}]}
 
-    with pytest.raises(ValueError, match="Lists at \\$\\.items do not match, they have different lengths"):
+    with pytest.raises(
+        JSONListLengthMismatchError, match="Lists at \\$\\.items do not match, they have different lengths"
+    ):
         json_matcher.match(template, actual)
 
 
@@ -267,7 +275,8 @@ def test_json_matcher_error_pattern_mismatch():
     actual = {"email": "not-an-email"}
 
     with pytest.raises(
-        ValueError, match="Strings at \\$\\.email = not-an-email do not match the pattern \\{email:user_email\\}"
+        JSONPatternMatchError,
+        match="Strings at \\$\\.email = not-an-email do not match the pattern \\{email:user_email\\}",
     ):
         json_matcher.match(template, actual)
 
@@ -286,7 +295,9 @@ def test_json_matcher_error_inconsistent_values():
         },
     }
 
-    with pytest.raises(ValueError, match="Values at \\$\\.child\\.parent_id\\.shared_id do not match"):
+    with pytest.raises(
+        JSONPatternValueInconsistencyError, match="Values at \\$\\.child\\.parent_id\\.shared_id do not match"
+    ):
         json_matcher.match(template, actual)
 
 

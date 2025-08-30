@@ -1,5 +1,6 @@
 import pytest
 
+from json_patterns.exceptions import JSONPatternTypeError
 from json_patterns.patterns import compile_template
 
 
@@ -26,7 +27,7 @@ def test_unknown_pattern_raises_error():
     template = "{unknown:test}"
     pattern_handlers = {"uuid": r"[0-9a-f]+"}
 
-    with pytest.raises(ValueError, match="Unknown pattern type: unknown"):
+    with pytest.raises(JSONPatternTypeError, match="Unknown pattern type: unknown"):
         compile_template(template, pattern_handlers)
 
 
