@@ -1,8 +1,17 @@
+"""
+A class for matching JSON objects using pattern-based templates.
+
+The JSONMatcher allows you to compare two JSON objects where one can contain
+pattern placeholders (e.g., {string:name}) that will be matched against
+corresponding values in the other object. Matched values are stored and can
+be reused for consistency across multiple matches.
+"""
+
 from json_patterns.patterns import compile_template
 
 
 class JSONMatcher:
-    """
+    r"""
     A class for matching JSON objects using pattern-based templates.
     
     The JSONMatcher allows you to compare two JSON objects where one can contain
@@ -146,7 +155,9 @@ class JSONMatcher:
                     continue
                 match = regex.match(actual_value)
                 if not match:
-                    raise ValueError(f"Strings at {path}.{key} = {actual_value} do not match the pattern {template_value}")
+                    raise ValueError(
+                        f"Strings at {path}.{key} = {actual_value} do not match the pattern {template_value}"
+                    )
                 for i, (pattern, identifier) in enumerate(fields, start=1):
                     if identifier is None:
                         continue

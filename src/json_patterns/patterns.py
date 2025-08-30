@@ -1,4 +1,4 @@
-"""
+r"""
 Pattern compilation utilities for JSON pattern matching.
 
 This module provides functionality to compile template strings containing
@@ -29,7 +29,7 @@ MASTER_PATTERN_REGEX = re.compile(
 )
 
 def compile_template(template: str, available_patterns: dict) -> tuple[re.Pattern, list[tuple[str, str]]]:
-    """
+    r"""
     Convert a template with placeholders into a regex and metadata.
     
     This function takes a template string containing pattern placeholders
