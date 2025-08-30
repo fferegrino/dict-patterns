@@ -14,6 +14,17 @@ Dictionary Patterns is a Python library that allows you to match dictionary obje
 - **Custom exceptions**: Rich error handling with specific exception types
 - **Flexible patterns**: Define your own regex patterns for different data types
 
+## When to Use This Library
+
+**This library does not replace JSON Schema validation.** It's designed for different use cases:
+
+- **String-based pattern matching**: This library works exclusively with string values and regex patterns, making it ideal for validating string-based data structures
+- **Non-deterministic outputs**: Perfect for testing APIs or functions that return dynamic data where exact values aren't predictable but patterns are known
+- **Repeating value validation**: Useful when the same values can appear multiple times across a document and you need to ensure consistency
+- **Simple validation scenarios**: Great for lightweight testing where full JSON Schema validation might be overkill
+
+For complex data validation, type checking, or when you need to validate non-string data types, consider using JSON Schema or other validation libraries too.
+
 ## Installation
 
 ```bash
