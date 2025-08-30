@@ -6,8 +6,44 @@ readme = "readme.md"
 authors = [
     { name = "Antonio Feregrino", email = "antonio.feregrino@gmail.com" }
 ]
+maintainers = [
+    { name = "Antonio Feregrino", email = "antonio.feregrino@gmail.com" }
+]
+license = {text = "MIT"}
 requires-python = ">=3.10"
 dependencies = []
+keywords = [
+    "dictionary",
+    "pattern-matching",
+    "template-engine",
+    "testing",
+    "validation",
+    "json",
+    "regex",
+    "pytest",
+    "data-validation"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/fferegrino/dict-patterns"
+Repository = "https://github.com/fferegrino/dict-patterns.git"
+Issues = "https://github.com/fferegrino/dict-patterns/issues"
 
 [project.optional-dependencies]
 pytest = ["pytest>=8.4.1"]
