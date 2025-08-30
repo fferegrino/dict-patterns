@@ -93,6 +93,8 @@ Patterns use the format `{pattern_name:identifier}` where:
 '{number}'                # Matches any number, no identifier
 ```
 
+Note that in the above example, the the patterns `string`, `number` and `uuid` must be previously defined.
+
 ## Error Handling
 
 The library provides custom exceptions for better error handling and debugging:
@@ -217,6 +219,106 @@ DictMatcher(pattern_handlers: dict)
 
 - `match(template: dict, actual: dict)`: Match template against actual dictionary
 - `values`: Property containing matched values organized by pattern type
+
+
+## Pytest Plugin
+
+Dictionary Patterns includes a pytest plugin that provides convenient fixtures for testing. The plugin automatically registers when you install the package.
+
+### Available Fixtures
+
+#### `pattern_handlers`
+
+Provides an empty dictionary for regex pattern definitions. Override this fixture in your tests to define custom patterns:
+
+```python
+import pytest
+
+class TestWithCustomPatterns:
+    @pytest.fixture
+    def pattern_handlers(self):
+        return {
+            "string": r"[a-zA-Z]+",
+            "number": r"\d+",
+            "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+        }
+```
+
+#### `dict_matcher`
+
+Provides a `DictMatcher` instance configured with the pattern handlers from the `pattern_handlers` fixture:
+
+```python
+def test_basic_matching(dict_matcher):
+    template = {"name": "{string:name}", "age": "{number:age}"}
+    actual = {"name": "John", "age": "25"}
+    
+    dict_matcher.match(template, actual)
+    
+    assert dict_matcher.values["string"]["name"] == "John"
+    assert dict_matcher.values["number"]["age"] == "25"
+```
+
+#### `dict_match`
+
+Provides a convenience function that performs pattern matching and returns the extracted values:
+
+```python
+def test_convenience_matching(dict_match):
+    template = {"name": "{string:name}", "age": "{number:age}"}
+    actual = {"name": "John", "age": "25"}
+    
+    extracted_values = dict_match(template, actual)
+    
+    assert extracted_values == {
+        "string": {"name": "John"},
+        "number": {"age": "25"},
+    }
+```
+
+### Complete Example
+
+```python
+import pytest
+
+class TestUserAPI:
+    @pytest.fixture
+    def pattern_handlers(self):
+        return {
+            "string": r"[a-zA-Z]+",
+            "number": r"\d+",
+            "uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        }
+    
+    def test_user_response_structure(self, dict_match):
+        # API response template
+        template = {
+            "user": {
+                "id": "{uuid:user_id}",
+                "name": "{string:user_name}",
+                "age": "{number:user_age}",
+            },
+            "created_at": "{string:timestamp}",
+        }
+        
+        # Actual API response
+        actual = {
+            "user": {
+                "id": "1d408610-f129-47a8-a4c1-1a6e0ca2d16f",
+                "name": "John Doe",
+                "age": "30",
+            },
+            "created_at": "2024-01-15T10:30:00Z",
+        }
+        
+        # Extract and verify values
+        extracted = dict_match(template, actual)
+        
+        assert extracted["uuid"]["user_id"] == "1d408610-f129-47a8-a4c1-1a6e0ca2d16f"
+        assert extracted["string"]["user_name"] == "John Doe"
+        assert extracted["number"]["user_age"] == "30"
+        assert extracted["string"]["timestamp"] == "2024-01-15T10:30:00Z"
+```
 
 ## Contributing
 
