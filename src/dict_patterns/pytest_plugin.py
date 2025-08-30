@@ -62,8 +62,8 @@ def dict_match(dict_matcher):
 
     """
 
-    def _dict_match(template, actual):
-        dict_matcher.match(template, actual)
+    def _dict_match(template, actual, partial_match=False):
+        dict_matcher.match(template, actual, partial_match=partial_match)
         return dict_matcher.values
 
     return _dict_match

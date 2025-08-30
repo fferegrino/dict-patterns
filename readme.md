@@ -11,6 +11,7 @@ Dictionary Patterns is a Python library that allows you to match dictionary obje
 - **Pattern-based matching**: Use placeholders like `{string:name}` to match dynamic values
 - **Value consistency**: Ensure the same pattern identifier has consistent values across matches
 - **Nested structure support**: Handle complex nested dictionary objects and arrays
+- **Partial matching**: Allow actual dictionaries to contain extra fields not present in the template
 - **Custom exceptions**: Rich error handling with specific exception types
 - **Flexible patterns**: Define your own regex patterns for different data types
 
@@ -71,6 +72,20 @@ matcher.match(template, actual)
 print(matcher.values['string']['user_name'])  # 'John'
 print(matcher.values['number']['user_age'])   # '25'
 print(matcher.values['uuid']['user_id'])      # '1d408610-f129-47a8-a4c1-1a6e0ca2d16f'
+
+# Partial matching example
+actual_with_extra = {
+    'user': {
+        'name': 'John',
+        'age': '25',
+        'id': '1d408610-f129-47a8-a4c1-1a6e0ca2d16f',
+        'email': 'john@example.com',  # Extra field
+        'address': {'street': '123 Main St'}  # Extra nested field
+    }
+}
+
+# This will work with partial matching
+matcher.match(template, actual_with_extra, partial_match=True)
 ```
 
 ## Pattern Syntax
@@ -149,6 +164,40 @@ except DictPatternError as e:
 
 ## Advanced Usage
 
+### Partial Matching
+
+When you need to match against dictionaries that may contain additional fields not present in your template, you can use partial matching:
+
+```python
+template = {
+    'user': {
+        'name': '{string:user_name}',
+        'age': '{number:user_age}'
+    }
+}
+
+# This actual data has extra fields
+actual = {
+    'user': {
+        'name': 'John',
+        'age': '25',
+        'email': 'john@example.com',  # Extra field
+        'address': {'street': '123 Main St'}  # Extra nested field
+    },
+    'metadata': {'version': '1.0'}  # Extra field at root level
+}
+
+# Use partial_match=True to allow extra fields
+matcher.match(template, actual, partial_match=True)
+```
+
+**Key points about partial matching:**
+
+- Only allows extra fields in the actual dictionary
+- Template fields must still be present in the actual dictionary
+- Works with nested structures at any level
+- Pattern matching and value consistency still apply to matched fields
+
 ### Value Consistency
 
 The library ensures that the same pattern identifier has consistent values across matches:
@@ -217,8 +266,14 @@ DictMatcher(pattern_handlers: dict)
 
 #### Methods
 
-- `match(template: dict, actual: dict)`: Match template against actual dictionary
+- `match(template: dict, actual: dict, partial_match: bool = False)`: Match template against actual dictionary
 - `values`: Property containing matched values organized by pattern type
+
+#### Parameters
+
+- `template`: The template dictionary that may contain pattern placeholders
+- `actual`: The actual dictionary to match against
+- `partial_match`: When `True`, allows the actual dictionary to contain extra fields not present in the template
 
 
 ## Pytest Plugin
@@ -269,6 +324,17 @@ def test_convenience_matching(dict_match):
     actual = {"name": "John", "age": "25"}
     
     extracted_values = dict_match(template, actual)
+    
+    assert extracted_values == {
+        "string": {"name": "John"},
+        "number": {"age": "25"},
+    }
+
+def test_partial_matching(dict_match):
+    template = {"name": "{string:name}", "age": "{number:age}"}
+    actual = {"name": "John", "age": "25", "email": "john@example.com"}
+    
+    extracted_values = dict_match(template, actual, partial_match=True)
     
     assert extracted_values == {
         "string": {"name": "John"},

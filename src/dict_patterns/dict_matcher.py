@@ -79,7 +79,7 @@ class DictMatcher:
         """
         self.values = {key: {} for key in self.pattern_handlers}
 
-    def match(self, template: dict, actual: dict) -> None:
+    def match(self, template: dict, actual: dict, partial_match: bool = False) -> None:
         """
         Match two dictionary objects using pattern templates.
 
@@ -95,6 +95,8 @@ class DictMatcher:
         actual : dict
             The actual object to match against. This object should contain
             concrete values that match the patterns in the left object.
+        partial_match : bool
+            Whether to allow partial matching of the template.
 
         Raises
         ------
@@ -114,9 +116,9 @@ class DictMatcher:
 
         """
         self.__reset_values()
-        self._match(template, actual, "$")
+        self._match(template, actual, "$", partial_match)
 
-    def _match(self, template: dict, actual: dict, path: str) -> None:
+    def _match(self, template: dict, actual: dict, path: str, partial_match: bool = False) -> None:
         """
         Recursively match nested dictionary objects.
 
@@ -132,6 +134,8 @@ class DictMatcher:
         path : str
             The current path in the dictionary structure for error reporting.
             Uses dot notation (e.g., "$.user.profile.name").
+        partial_match : bool
+            Whether to allow partial matching of the template.
 
         Raises
         ------
@@ -139,16 +143,19 @@ class DictMatcher:
             If objects don't match at any level, with detailed path information.
 
         """
-        if template.keys() != actual.keys():
+        if template.keys() != actual.keys() and not partial_match:
             raise DictKeyMismatchError(path)
 
         for key, template_value in template.items():
+            if key not in actual:
+                raise DictKeyMismatchError(f"{path}.{key}")
+
             actual_value = actual[key]
             current_path = f"{path}.{key}"
 
-            self._match_value(template_value, actual_value, current_path)
+            self._match_value(template_value, actual_value, current_path, partial_match)
 
-    def _match_value(self, template_value, actual_value, path: str) -> None:
+    def _match_value(self, template_value, actual_value, path: str, partial_match: bool = False) -> None:
         """
         Match a single value pair based on their types.
 
@@ -160,28 +167,30 @@ class DictMatcher:
             The actual value to match.
         path : str
             The current path for error reporting.
+        partial_match : bool
+            Whether to allow partial matching of the template.
 
         """
         if isinstance(template_value, dict) and isinstance(actual_value, dict):
-            self._match_dict(template_value, actual_value, path)
+            self._match_dict(template_value, actual_value, path, partial_match)
         elif isinstance(template_value, list) and isinstance(actual_value, list):
-            self._match_list(template_value, actual_value, path)
+            self._match_list(template_value, actual_value, path, partial_match)
         elif isinstance(template_value, str) and isinstance(actual_value, str):
             self._match_string(template_value, actual_value, path)
         elif template_value != actual_value:
             raise DictValueMismatchError(path, template_value, actual_value)
 
-    def _match_dict(self, template: dict, actual: dict, path: str) -> None:
+    def _match_dict(self, template: dict, actual: dict, path: str, partial_match: bool = False) -> None:
         """Match two dictionary values recursively."""
-        self._match(template, actual, path)
+        self._match(template, actual, path, partial_match)
 
-    def _match_list(self, template: list, actual: list, path: str) -> None:
+    def _match_list(self, template: list, actual: list, path: str, partial_match: bool = False) -> None:
         """Match two list values element by element."""
         if len(template) != len(actual):
             raise DictListLengthMismatchError(path)
 
         for i, (template_item, actual_item) in enumerate(zip(template, actual, strict=True)):
-            self._match_value(template_item, actual_item, f"{path}[{i}]")
+            self._match_value(template_item, actual_item, f"{path}[{i}]", partial_match)
 
     def _match_string(self, template: str, actual: str, path: str) -> None:
         """Match two string values, handling pattern placeholders."""

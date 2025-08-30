@@ -41,3 +41,21 @@ class TestWithPatternHandlers:
             "string": {"name": "John"},
             "number": {"age": "25"},
         }
+
+    def test_dict_match_partial(self, dict_match):
+        template = {
+            "name": "{string:name}",
+            "age": "{number:age}",
+        }
+        actual = {
+            "name": "John",
+            "age": "25",
+            "email": "john@example.com",  # Extra field
+            "address": {"street": "123 Main St"},  # Extra nested field
+        }
+        extracted_values = dict_match(template, actual, partial_match=True)
+
+        assert extracted_values == {
+            "string": {"name": "John"},
+            "number": {"age": "25"},
+        }

@@ -67,6 +67,194 @@ def test_dict_matcher_with_simple_patterns():
     json_matcher.match(template, actual)
 
 
+def test_dict_matcher_with_simple_patterns_partial_match():
+    """Test dictionary matching with basic pattern placeholders."""
+    simple_patterns = {
+        "name": r"[A-Za-z]+\s[A-Za-z]+",
+        "uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    }
+    json_matcher = DictMatcher(simple_patterns)
+
+    template = {
+        "id": "{uuid}",
+        "name": "{name}",
+    }
+
+    actual = {
+        "id": "1d408610-f129-47a8-a4c1-1a6e0ca2d16f",
+        "name": "John Doe",
+        "age": 30,
+        "email": "john.doe@example.com",
+        "address": {
+            "street": "123 Main St",
+        },
+    }
+
+    json_matcher.match(template, actual, partial_match=True)
+
+
+def test_dict_matcher_partial_match_nested_structures():
+    """Test partial matching with nested dictionary structures."""
+    patterns = {"string": r"[a-zA-Z\s]+", "number": r"\d+"}
+    json_matcher = DictMatcher(patterns)
+
+    template = {
+        "user": {
+            "name": "{string:user_name}",
+            "profile": {
+                "age": "{number:user_age}",
+            },
+        },
+    }
+
+    actual = {
+        "user": {
+            "name": "John",
+            "profile": {
+                "age": "25",
+                "email": "john@example.com",  # Extra field
+                "address": {"street": "123 Main St"},  # Extra nested field
+            },
+            "settings": {"theme": "dark"},  # Extra field at user level
+        },
+        "metadata": {"version": "1.0"},  # Extra field at root level
+    }
+
+    json_matcher.match(template, actual, partial_match=True)
+
+    assert json_matcher.values["string"]["user_name"] == "John"
+    assert json_matcher.values["number"]["user_age"] == "25"
+
+
+def test_dict_matcher_partial_match_lists():
+    """Test partial matching with list structures."""
+    patterns = {"string": r"[a-zA-Z\s]+", "number": r"\d+"}
+    json_matcher = DictMatcher(patterns)
+
+    template = {
+        "users": [
+            {"name": "{string:user1}", "role": "{string:role1}"},
+            {"name": "{string:user2}", "role": "{string:role2}"},
+        ],
+    }
+
+    actual = {
+        "users": [
+            {"name": "Alice", "role": "admin", "email": "alice@example.com"},  # Extra field
+            {"name": "Bob", "role": "user", "department": "IT"},  # Extra field
+        ],
+        "total_count": 2,  # Extra field at root level
+    }
+
+    json_matcher.match(template, actual, partial_match=True)
+
+    assert json_matcher.values["string"]["user1"] == "Alice"
+    assert json_matcher.values["string"]["user2"] == "Bob"
+    assert json_matcher.values["string"]["role1"] == "admin"
+    assert json_matcher.values["string"]["role2"] == "user"
+
+
+def test_dict_matcher_partial_match_missing_required_keys():
+    """Test that partial matching still requires template keys to be present."""
+    json_matcher = DictMatcher({})
+
+    template = {
+        "required_field": "must_exist",
+        "optional_field": "can_be_missing",
+    }
+
+    actual = {
+        "required_field": "must_exist",
+        # missing optional_field
+        "extra_field": "extra_value",
+    }
+
+    # This should still fail because optional_field is in template but missing in actual
+    with pytest.raises(DictKeyMismatchError):
+        json_matcher.match(template, actual, partial_match=True)
+
+
+def test_dict_matcher_partial_match_empty_template():
+    """Test partial matching with an empty template."""
+    json_matcher = DictMatcher({})
+
+    template = {}
+    actual = {
+        "field1": "value1",
+        "field2": "value2",
+        "nested": {"field3": "value3"},
+    }
+
+    json_matcher.match(template, actual, partial_match=True)  # Should not raise
+
+
+def test_dict_matcher_partial_match_complex_scenario():
+    """Test a complex partial matching scenario with multiple levels of nesting."""
+    patterns = {
+        "string": r"[a-zA-Z\s]+",  # Allow spaces in strings
+        "number": r"\d+",
+        "uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+    }
+    json_matcher = DictMatcher(patterns)
+
+    template = {
+        "order": {
+            "id": "{uuid:order_id}",
+            "customer": {
+                "name": "{string:customer_name}",
+                "profile": {
+                    "age": "{number:customer_age}",
+                },
+            },
+            "items": [
+                {"name": "{string:item1_name}", "quantity": "{number:item1_qty}"},
+                {"name": "{string:item2_name}", "quantity": "{number:item2_qty}"},
+            ],
+        },
+    }
+
+    actual = {
+        "order": {
+            "id": "1d408610-f129-47a8-a4c1-1a6e0ca2d16f",
+            "customer": {
+                "name": "John Doe",
+                "profile": {
+                    "age": "30",
+                    "email": "john@example.com",  # Extra field
+                    "address": {"street": "123 Main St"},  # Extra nested field
+                },
+                "preferences": {"theme": "dark"},  # Extra field
+            },
+            "items": [
+                {
+                    "name": "Laptop",
+                    "quantity": "1",
+                    "price": "$999.99",  # Extra field
+                    "category": "Electronics",  # Extra field
+                },
+                {
+                    "name": "Mouse",
+                    "quantity": "2",
+                    "warranty": "1 year",  # Extra field
+                },
+            ],
+            "shipping": {"method": "express"},  # Extra field
+        },
+        "metadata": {"version": "1.0"},  # Extra field at root level
+    }
+
+    json_matcher.match(template, actual, partial_match=True)
+
+    # Verify all captured values
+    assert json_matcher.values["uuid"]["order_id"] == "1d408610-f129-47a8-a4c1-1a6e0ca2d16f"
+    assert json_matcher.values["string"]["customer_name"] == "John Doe"
+    assert json_matcher.values["number"]["customer_age"] == "30"
+    assert json_matcher.values["string"]["item1_name"] == "Laptop"
+    assert json_matcher.values["string"]["item2_name"] == "Mouse"
+    assert json_matcher.values["number"]["item1_qty"] == "1"
+    assert json_matcher.values["number"]["item2_qty"] == "2"
+
+
 def test_dict_matcher_with_simple_patterns_and_value_repetition():
     """Test dictionary matching with pattern placeholders and value consistency across nested structures."""
     simple_patterns = {
