@@ -1,17 +1,17 @@
 import pytest
 
-from json_patterns.exceptions import (
-    JSONKeyMismatchError,
-    JSONListLengthMismatchError,
-    JSONPatternMatchError,
-    JSONPatternValueInconsistencyError,
+from dict_patterns.dict_matcher import DictMatcher
+from dict_patterns.exceptions import (
+    DictKeyMismatchError,
+    DictListLengthMismatchError,
+    DictPatternMatchError,
+    DictPatternValueInconsistencyError,
 )
-from json_patterns.json_matcher import JSONMatcher
 
 
-def test_json_matcher_no_patterns():
-    """Test basic JSON matching without any pattern placeholders."""
-    json_matcher = JSONMatcher({})
+def test_dict_matcher_no_patterns():
+    """Test basic dictionary matching without any pattern placeholders."""
+    json_matcher = DictMatcher({})
 
     template = {
         "id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
@@ -36,13 +36,13 @@ def test_json_matcher_no_patterns():
     json_matcher.match(template, actual)
 
 
-def test_json_matcher_with_simple_patterns():
-    """Test JSON matching with basic pattern placeholders."""
+def test_dict_matcher_with_simple_patterns():
+    """Test dictionary matching with basic pattern placeholders."""
     simple_patterns = {
         "name": r"[A-Za-z]+\s[A-Za-z]+",
         "uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
     }
-    json_matcher = JSONMatcher(simple_patterns)
+    json_matcher = DictMatcher(simple_patterns)
 
     template = {
         "id": "{uuid}",
@@ -67,13 +67,13 @@ def test_json_matcher_with_simple_patterns():
     json_matcher.match(template, actual)
 
 
-def test_json_matcher_with_simple_patterns_and_value_repetition():
-    """Test JSON matching with pattern placeholders and value consistency across nested structures."""
+def test_dict_matcher_with_simple_patterns_and_value_repetition():
+    """Test dictionary matching with pattern placeholders and value consistency across nested structures."""
     simple_patterns = {
         "name": r"[A-Za-z]+\s[A-Za-z]+",
         "uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
     }
-    json_matcher = JSONMatcher(simple_patterns)
+    json_matcher = DictMatcher(simple_patterns)
 
     template = {
         "id": "{uuid:parent}",
@@ -119,7 +119,7 @@ def test_json_matcher_with_simple_patterns_and_value_repetition():
     }
 
 
-def test_json_matcher_ecommerce_order():
+def test_dict_matcher_ecommerce_order():
     """Test a realistic e-commerce order scenario with various pattern types."""
     patterns = {
         "order_id": r"ORD-\d{8}-\d{4}",
@@ -130,7 +130,7 @@ def test_json_matcher_ecommerce_order():
         "timestamp": r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z",
     }
 
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {
         "order": {
@@ -172,7 +172,7 @@ def test_json_matcher_ecommerce_order():
     assert json_matcher.values == expected_values
 
 
-def test_json_matcher_api_response():
+def test_dict_matcher_api_response():
     """Test matching API response patterns with nested arrays and objects."""
     patterns = {
         "user_id": r"\d+",
@@ -183,7 +183,7 @@ def test_json_matcher_api_response():
         "session_id": r"[a-f0-9]{32}",
     }
 
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {
         "api_version": "v1.0",
@@ -242,49 +242,49 @@ def test_json_matcher_api_response():
     assert json_matcher.values["role"]["regular_role"] == "user"
 
 
-def test_json_matcher_error_mismatched_keys():
+def test_dict_matcher_error_mismatched_keys():
     """Test that mismatched keys between template and actual raise ValueError."""
-    json_matcher = JSONMatcher({})
+    json_matcher = DictMatcher({})
 
     template = {"name": "John", "age": 30}
     actual = {"name": "John", "age": 30, "email": "john@example.com"}
 
-    with pytest.raises(JSONKeyMismatchError, match="Keys at \\$ do not match"):
+    with pytest.raises(DictKeyMismatchError, match="Keys at \\$ do not match"):
         json_matcher.match(template, actual)
 
 
-def test_json_matcher_error_different_list_lengths():
+def test_dict_matcher_error_different_list_lengths():
     """Test that different list lengths raise ValueError."""
-    json_matcher = JSONMatcher({})
+    json_matcher = DictMatcher({})
 
     template = {"items": [{"id": 1}, {"id": 2}]}
     actual = {"items": [{"id": 1}]}
 
     with pytest.raises(
-        JSONListLengthMismatchError, match="Lists at \\$\\.items do not match, they have different lengths"
+        DictListLengthMismatchError, match="Lists at \\$\\.items do not match, they have different lengths"
     ):
         json_matcher.match(template, actual)
 
 
-def test_json_matcher_error_pattern_mismatch():
+def test_dict_matcher_error_pattern_mismatch():
     """Test that pattern mismatches raise ValueError."""
     patterns = {"email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"}
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {"email": "{email:user_email}"}
     actual = {"email": "not-an-email"}
 
     with pytest.raises(
-        JSONPatternMatchError,
+        DictPatternMatchError,
         match="Strings at \\$\\.email = not-an-email do not match the pattern \\{email:user_email\\}",
     ):
         json_matcher.match(template, actual)
 
 
-def test_json_matcher_error_inconsistent_values():
+def test_dict_matcher_error_inconsistent_values():
     """Test that inconsistent pattern values across multiple matches raise ValueError."""
     patterns = {"uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"}
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {"parent_id": "{uuid:shared_id}", "child": {"parent_id": "{uuid:shared_id}"}}
 
@@ -296,15 +296,15 @@ def test_json_matcher_error_inconsistent_values():
     }
 
     with pytest.raises(
-        JSONPatternValueInconsistencyError, match="Values at \\$\\.child\\.parent_id\\.shared_id do not match"
+        DictPatternValueInconsistencyError, match="Values at \\$\\.child\\.parent_id\\.shared_id do not match"
     ):
         json_matcher.match(template, actual)
 
 
-def test_json_matcher_mixed_data_types():
+def test_dict_matcher_mixed_data_types():
     """Test matching with various data types including booleans, numbers, and null values."""
     patterns = {"string": r"[a-zA-Z]+", "number": r"\d+"}
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {
         "string_field": "{string:test_string}",
@@ -330,10 +330,10 @@ def test_json_matcher_mixed_data_types():
     assert json_matcher.values["number"]["test_number"] == "123"
 
 
-def test_json_matcher_deep_nesting():
+def test_dict_matcher_deep_nesting():
     """Test matching with deeply nested structures."""
     patterns = {"id": r"\d+", "name": r"[a-zA-Z]+"}
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {
         "level1": {"level2": {"level3": {"level4": {"level5": {"id": "{id:deep_id}", "name": "{name:deep_name}"}}}}}
@@ -347,9 +347,9 @@ def test_json_matcher_deep_nesting():
     assert json_matcher.values["name"]["deep_name"] == "DeepValue"
 
 
-def test_json_matcher_empty_structures():
+def test_dict_matcher_empty_structures():
     """Test matching with empty objects and arrays."""
-    json_matcher = JSONMatcher({})
+    json_matcher = DictMatcher({})
 
     template = {"empty_object": {}, "empty_array": [], "nested_empty": {"empty": {}}}
 
@@ -358,10 +358,10 @@ def test_json_matcher_empty_structures():
     json_matcher.match(template, actual)  # Should not raise any exceptions
 
 
-def test_json_matcher_patterns_without_identifiers():
+def test_dict_matcher_patterns_without_identifiers():
     """Test patterns without identifiers (anonymous patterns)."""
     patterns = {"word": r"[a-zA-Z]+", "number": r"\d+"}
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {
         "text": "{word}",  # No identifier
@@ -373,10 +373,10 @@ def test_json_matcher_patterns_without_identifiers():
     json_matcher.match(template, actual)  # Should work without storing values
 
 
-def test_json_matcher_complex_list_nesting():
+def test_dict_matcher_complex_list_nesting():
     """Test matching with complex nested list structures."""
     patterns = {"id": r"\d+", "type": r"[a-zA-Z]+"}
-    json_matcher = JSONMatcher(patterns)
+    json_matcher = DictMatcher(patterns)
 
     template = {
         "categories": [

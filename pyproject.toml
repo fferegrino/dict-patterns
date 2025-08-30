@@ -1,7 +1,7 @@
 [project]
-name = "json-patterns"
+name = "dict-patterns"
 version = "0.1.0"
-description = "A template engine for JSON data – useful for tests!"
+description = "A template engine for dictionary data – useful for tests!"
 readme = "readme.md"
 authors = [
     { name = "Antonio Feregrino", email = "antonio.feregrino@gmail.com" }
@@ -42,7 +42,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["json_patterns"]
+known-first-party = ["dict_patterns"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [

@@ -1,27 +1,27 @@
 """
-A class for matching JSON objects using pattern-based templates.
+A class for matching dictionary objects using pattern-based templates.
 
-The JSONMatcher allows you to compare two JSON objects where one can contain
+The DictMatcher allows you to compare two dictionary objects where one can contain
 pattern placeholders (e.g., {string:name}) that will be matched against
 corresponding values in the other object. Matched values are stored and can
 be reused for consistency across multiple matches.
 """
 
-from json_patterns.exceptions import (
-    JSONKeyMismatchError,
-    JSONListLengthMismatchError,
-    JSONPatternMatchError,
-    JSONPatternValueInconsistencyError,
-    JSONValueMismatchError,
+from dict_patterns.exceptions import (
+    DictKeyMismatchError,
+    DictListLengthMismatchError,
+    DictPatternMatchError,
+    DictPatternValueInconsistencyError,
+    DictValueMismatchError,
 )
-from json_patterns.patterns import compile_template
+from dict_patterns.patterns import compile_template
 
 
-class JSONMatcher:
+class DictMatcher:
     r"""
-    A class for matching JSON objects using pattern-based templates.
+    A class for matching dictionary objects using pattern-based templates.
 
-    The JSONMatcher allows you to compare two JSON objects where one can contain
+    The DictMatcher allows you to compare two dictionary objects where one can contain
     pattern placeholders (e.g., {string:name}) that will be matched against
     corresponding values in the other object. Matched values are stored and can
     be reused for consistency across multiple matches.
@@ -46,7 +46,7 @@ class JSONMatcher:
     ...     'string': r'[a-zA-Z]+',
     ...     'number': r'\\d+'
     ... }
-    >>> matcher = JSONMatcher(pattern_handlers)
+    >>> matcher = DictMatcher(pattern_handlers)
     >>>
     >>> left = {'name': '{string:user_name}', 'age': '{number:user_age}'}
     >>> right = {'name': 'John', 'age': '25'}
@@ -58,7 +58,7 @@ class JSONMatcher:
 
     def __init__(self, pattern_handlers: dict):
         """
-        Initialize the JSONMatcher with pattern handlers.
+        Initialize the DictMatcher with pattern handlers.
 
         Parameters
         ----------
@@ -81,7 +81,7 @@ class JSONMatcher:
 
     def match(self, template: dict, actual: dict) -> None:
         """
-        Match two JSON objects using pattern templates.
+        Match two dictionary objects using pattern templates.
 
         This method compares the template object (which may contain pattern placeholders)
         against the actual object (which contains actual values). Pattern matches
@@ -105,7 +105,7 @@ class JSONMatcher:
 
         Examples
         --------
-        >>> matcher = JSONMatcher({'string': r'[a-zA-Z]+'})
+        >>> matcher = DictMatcher({'string': r'[a-zA-Z]+'})
         >>> template = {'user': '{string:name}'}
         >>> actual = {'user': 'Alice'}
         >>> matcher.match(template, actual)  # No exception raised
@@ -118,7 +118,7 @@ class JSONMatcher:
 
     def _match(self, template: dict, actual: dict, path: str) -> None:
         """
-        Recursively match nested JSON objects.
+        Recursively match nested dictionary objects.
 
         This is an internal method that handles the recursive matching of
         nested dictionaries, lists, and pattern-based string matching.
@@ -130,7 +130,7 @@ class JSONMatcher:
         actual : dict
             The actual object (right side of comparison).
         path : str
-            The current path in the JSON structure for error reporting.
+            The current path in the dictionary structure for error reporting.
             Uses dot notation (e.g., "$.user.profile.name").
 
         Raises
@@ -140,7 +140,7 @@ class JSONMatcher:
 
         """
         if template.keys() != actual.keys():
-            raise JSONKeyMismatchError(path)
+            raise DictKeyMismatchError(path)
 
         for key, template_value in template.items():
             actual_value = actual[key]
@@ -169,7 +169,7 @@ class JSONMatcher:
         elif isinstance(template_value, str) and isinstance(actual_value, str):
             self._match_string(template_value, actual_value, path)
         elif template_value != actual_value:
-            raise JSONValueMismatchError(path, template_value, actual_value)
+            raise DictValueMismatchError(path, template_value, actual_value)
 
     def _match_dict(self, template: dict, actual: dict, path: str) -> None:
         """Match two dictionary values recursively."""
@@ -178,7 +178,7 @@ class JSONMatcher:
     def _match_list(self, template: list, actual: list, path: str) -> None:
         """Match two list values element by element."""
         if len(template) != len(actual):
-            raise JSONListLengthMismatchError(path)
+            raise DictListLengthMismatchError(path)
 
         for i, (template_item, actual_item) in enumerate(zip(template, actual, strict=True)):
             self._match_value(template_item, actual_item, f"{path}[{i}]")
@@ -188,19 +188,19 @@ class JSONMatcher:
         if not self.pattern_handlers:
             # No pattern handlers, do direct comparison
             if template != actual:
-                raise JSONValueMismatchError(path, template, actual)
+                raise DictValueMismatchError(path, template, actual)
             return
 
         regex, fields = compile_template(template, self.pattern_handlers)
         if not fields:
             # No patterns in template, do direct comparison
             if template != actual:
-                raise JSONValueMismatchError(path, template, actual)
+                raise DictValueMismatchError(path, template, actual)
             return
 
         match = regex.match(actual)
         if not match:
-            raise JSONPatternMatchError(path, template, actual)
+            raise DictPatternMatchError(path, template, actual)
 
         self._extract_pattern_values(match, fields, path)
 
@@ -216,7 +216,7 @@ class JSONMatcher:
             if identifier in self.values[pattern]:
                 # If we have seen this identifier on this pattern we just compare the values
                 if self.values[pattern][identifier] != matched_value:
-                    raise JSONPatternValueInconsistencyError(
+                    raise DictPatternValueInconsistencyError(
                         path, identifier, self.values[pattern][identifier], matched_value
                     )
             else:

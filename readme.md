@@ -1,29 +1,29 @@
-# JSON Patterns
+# Dictionary Patterns
 
-A template engine for JSON data – useful for tests!
+A template engine for data in dictionaries – useful for tests!
 
 ## Overview
 
-JSON Patterns is a Python library that allows you to match JSON objects using pattern-based templates. It's particularly useful for testing scenarios where you need to verify that JSON responses match expected patterns while allowing for dynamic values.
+Dictionary Patterns is a Python library that allows you to match dictionary objects using pattern-based templates. It's particularly useful for testing scenarios where you need to verify that dictionary responses match expected patterns while allowing for dynamic values.
 
 ## Features
 
 - **Pattern-based matching**: Use placeholders like `{string:name}` to match dynamic values
 - **Value consistency**: Ensure the same pattern identifier has consistent values across matches
-- **Nested structure support**: Handle complex nested JSON objects and arrays
+- **Nested structure support**: Handle complex nested dictionary objects and arrays
 - **Custom exceptions**: Rich error handling with specific exception types
 - **Flexible patterns**: Define your own regex patterns for different data types
 
 ## Installation
 
 ```bash
-pip install json-patterns
+pip install dict-patterns
 ```
 
 ## Quick Start
 
 ```python
-from json_patterns import JSONMatcher
+from dict_patterns import DictMatcher
 
 # Define your patterns
 patterns = {
@@ -33,7 +33,7 @@ patterns = {
 }
 
 # Create a matcher
-matcher = JSONMatcher(patterns)
+matcher = DictMatcher(patterns)
 
 # Define your template with placeholders
 template = {
@@ -65,6 +65,7 @@ print(matcher.values['uuid']['user_id'])      # '1d408610-f129-47a8-a4c1-1a6e0ca
 ## Pattern Syntax
 
 Patterns use the format `{pattern_name:identifier}` where:
+
 - `pattern_name` is the type of pattern to match (must be defined in your patterns dict)
 - `identifier` is an optional name for the captured value (used for consistency checking)
 
@@ -88,50 +89,50 @@ The library provides custom exceptions for better error handling and debugging:
 ### Exception Hierarchy
 
 ```
-JSONPatternError (base)
-├── JSONStructureError
-│   ├── JSONKeyMismatchError
-│   └── JSONListLengthMismatchError
-├── JSONValueMismatchError
-├── JSONPatternMatchError
-├── JSONPatternValueInconsistencyError
-└── JSONPatternTypeError
+DictPatternError (base)
+├── DictStructureError
+│   ├── DictKeyMismatchError
+│   └── DictListLengthMismatchError
+├── DictValueMismatchError
+├── DictPatternMatchError
+├── DictPatternValueInconsistencyError
+└── DictPatternTypeError
 ```
 
 ### Example Error Handling
 
 ```python
-from json_patterns import (
-    JSONMatcher,
-    JSONPatternError,
-    JSONStructureError,
-    JSONKeyMismatchError,
-    JSONPatternMatchError
+from dict_patterns import (
+    DictMatcher,
+    DictPatternError,
+    DictStructureError,
+    DictKeyMismatchError,
+    DictPatternMatchError
 )
 
 try:
-    matcher = JSONMatcher({'email': r'[^@]+@[^@]+\.[^@]+'})
+    matcher = DictMatcher({'email': r'[^@]+@[^@]+\.[^@]+'})
     template = {'email': '{email:user_email}'}
     actual = {'email': 'invalid-email'}
     matcher.match(template, actual)
-except JSONPatternMatchError as e:
+except DictPatternMatchError as e:
     print(f"Pattern match failed at {e.path}")
     print(f"Expected pattern: {e.template}")
     print(f"Actual value: {e.actual}")
-except JSONStructureError as e:
+except DictStructureError as e:
     print(f"Structure mismatch: {e}")
-except JSONPatternError as e:
-    print(f"Any JSON pattern error: {e}")
+except DictPatternError as e:
+    print(f"Any dictionary pattern error: {e}")
 ```
 
 ### Exception Types
 
-- **`JSONKeyMismatchError`**: Dictionary keys don't match between template and actual
-- **`JSONListLengthMismatchError`**: Lists have different lengths
-- **`JSONValueMismatchError`**: Simple values don't match (with optional template/actual values)
-- **`JSONPatternMatchError`**: String doesn't match the pattern template
-- **`JSONPatternValueInconsistencyError`**: Same pattern identifier has different values
-- **`JSONPatternTypeError`**: Unknown pattern type encountered
+- **`DictKeyMismatchError`**: Dictionary keys don't match between template and actual
+- **`DictListLengthMismatchError`**: Lists have different lengths
+- **`DictValueMismatchError`**: Simple values don't match (with optional template/actual values)
+- **`DictPatternMatchError`**: String doesn't match the pattern template
+- **`DictPatternValueInconsistencyError`**: Same pattern identifier has different values
+- **`DictPatternTypeError`**: Unknown pattern type encountered
 
 ## Advanced Usage
 
@@ -153,7 +154,7 @@ actual = {
 # This will work
 matcher.match(template, actual)
 
-# This will raise JSONPatternValueInconsistencyError
+# This will raise DictPatternValueInconsistencyError
 actual['child']['parent_id'] = 'different-uuid'
 matcher.match(template, actual)
 ```
@@ -163,8 +164,8 @@ matcher.match(template, actual)
 ```python
 template = {
     'users': [
-        {'name': '{string:user_name}', 'age': '{number:user_age}'},
-        {'name': '{string:user_name}', 'age': '{number:user_age}'}
+        {'name': '{string}', 'email': '{email}'},
+        {'name': '{string}', 'email': '{email}'}
     ],
     'metadata': {
         'total': '{number:total_count}',
@@ -178,6 +179,8 @@ template = {
 ```python
 # Define your own patterns
 patterns = {
+    'string': r'[a-zA-Z]+',
+    'number': r'\d+',
     'email': r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
     'phone': r'\+?1?\d{9,15}',
     'timestamp': r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z',
@@ -187,21 +190,21 @@ patterns = {
 
 ## API Reference
 
-### JSONMatcher
+### DictMatcher
 
-The main class for matching JSON objects.
+The main class for matching dictionary objects.
 
 #### Constructor
 
 ```python
-JSONMatcher(pattern_handlers: dict)
+DictMatcher(pattern_handlers: dict)
 ```
 
 - `pattern_handlers`: Dictionary mapping pattern names to regex patterns
 
 #### Methods
 
-- `match(template: dict, actual: dict)`: Match template against actual JSON
+- `match(template: dict, actual: dict)`: Match template against actual dictionary
 - `values`: Property containing matched values organized by pattern type
 
 ## Contributing

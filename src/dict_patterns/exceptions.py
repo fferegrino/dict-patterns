@@ -1,14 +1,14 @@
 """
-Custom exceptions for the JSON patterns library.
+Custom exceptions for the dictionary patterns library.
 
-This module provides a hierarchy of exceptions that are specific to JSON pattern
+This module provides a hierarchy of exceptions that are specific to dictionary pattern
 matching operations, making it easier for users to handle different types of
 errors that can occur during pattern matching.
 """
 
 
-class JSONPatternError(Exception):
-    """Base exception for all JSON pattern matching errors."""
+class DictPatternError(Exception):
+    """Base exception for all dictionary pattern matching errors."""
 
     def __init__(self, message: str, path: str = None):
         """Initialize the exception with a message and optional path."""
@@ -17,15 +17,15 @@ class JSONPatternError(Exception):
         super().__init__(self.message)
 
 
-class JSONStructureError(JSONPatternError):
-    """Raised when there are structural mismatches between template and actual JSON."""
+class DictStructureError(DictPatternError):
+    """Raised when there are structural mismatches between template and actual dictionary."""
 
     def __init__(self, message: str, path: str = None):
         """Initialize the exception with a message and optional path."""
         super().__init__(message, path)
 
 
-class JSONKeyMismatchError(JSONStructureError):
+class DictKeyMismatchError(DictStructureError):
     """Raised when dictionary keys don't match between template and actual."""
 
     def __init__(self, path: str):
@@ -34,7 +34,7 @@ class JSONKeyMismatchError(JSONStructureError):
         super().__init__(message, path)
 
 
-class JSONListLengthMismatchError(JSONStructureError):
+class DictListLengthMismatchError(DictStructureError):
     """Raised when lists have different lengths."""
 
     def __init__(self, path: str):
@@ -43,7 +43,7 @@ class JSONListLengthMismatchError(JSONStructureError):
         super().__init__(message, path)
 
 
-class JSONValueMismatchError(JSONPatternError):
+class DictValueMismatchError(DictPatternError):
     """Raised when values don't match between template and actual."""
 
     def __init__(self, path: str, template_value=None, actual_value=None):
@@ -56,7 +56,7 @@ class JSONValueMismatchError(JSONPatternError):
         self.actual_value = actual_value
 
 
-class JSONPatternMatchError(JSONPatternError):
+class DictPatternMatchError(DictPatternError):
     """Raised when pattern matching fails."""
 
     def __init__(self, path: str, template: str, actual: str):
@@ -67,7 +67,7 @@ class JSONPatternMatchError(JSONPatternError):
         self.actual = actual
 
 
-class JSONPatternValueInconsistencyError(JSONPatternError):
+class DictPatternValueInconsistencyError(DictPatternError):
     """Raised when the same pattern identifier has different values across matches."""
 
     def __init__(self, path: str, identifier: str, expected_value: str, actual_value: str):
@@ -79,7 +79,7 @@ class JSONPatternValueInconsistencyError(JSONPatternError):
         self.actual_value = actual_value
 
 
-class JSONPatternTypeError(JSONPatternError):
+class DictPatternTypeError(DictPatternError):
     """Raised when an unknown pattern type is encountered."""
 
     def __init__(self, pattern_name: str, available_patterns: list = None):

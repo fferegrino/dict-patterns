@@ -1,5 +1,5 @@
 r"""
-Pattern compilation utilities for JSON pattern matching.
+Pattern compilation utilities for dictionary pattern matching.
 
 This module provides functionality to compile template strings containing
 pattern placeholders into regular expressions that can be used for matching
@@ -24,7 +24,7 @@ Examples
 
 import re
 
-from .exceptions import JSONPatternTypeError
+from .exceptions import DictPatternTypeError
 
 MASTER_PATTERN_REGEX = re.compile(r"\{(?P<pattern>[a-z_]+)(?::(?P<identifier>[a-zA-Z0-9_]+))?\}")
 
@@ -104,7 +104,7 @@ def compile_template(template: str, available_patterns: dict) -> tuple[re.Patter
         regex_parts.append(re.escape(template[last_end : match.start()]))
 
         if pattern not in available_patterns:
-            raise JSONPatternTypeError(pattern, list(available_patterns.keys()))
+            raise DictPatternTypeError(pattern, list(available_patterns.keys()))
 
         # Add the capturing group for this placeholder
         regex_parts.append(f"({available_patterns[pattern]})")
