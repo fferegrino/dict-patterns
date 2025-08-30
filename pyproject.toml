@@ -50,12 +50,38 @@ pytest = ["pytest>=8.4.1"]
 
 [dependency-groups]
 dev = [
+    "bump-my-version>=1.2.1",
     "pytest>=8.4.1",
     "ruff>=0.12.11",
 ]
 
 [project.entry-points.pytest11]
 dict_patterns = "dict_patterns.pytest_plugin"
+
+[tool.bumpversion]
+current_version = "0.2.0"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+tag = true
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
+commit = true
+message = "Bump version: {current_version} → {new_version}"
+allow_dirty = false
+pre_commit_hooks = [
+    "uv sync",
+    "git add uv.lock",
+]
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = "version = \"{current_version}\""
+replace = "version = \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "src/dict_patterns/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
 
 [tool.ruff]
 line-length = 120
