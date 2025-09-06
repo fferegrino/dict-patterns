@@ -79,7 +79,7 @@ class DictMatcher:
         """
         self.values = {key: {} for key in self.pattern_handlers}
 
-    def match(self, template: dict, actual: dict, partial_match: bool = False) -> None:
+    def match(self, template: dict, actual: dict, partial_match: bool = False) -> dict:
         """
         Match two dictionary objects using pattern templates.
 
@@ -117,6 +117,7 @@ class DictMatcher:
         """
         self.__reset_values()
         self._match(template, actual, "$", partial_match)
+        return self.values
 
     def _match(self, template: dict, actual: dict, path: str, partial_match: bool = False) -> None:
         """

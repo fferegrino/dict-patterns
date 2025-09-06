@@ -36,6 +36,25 @@ def test_dict_matcher_no_patterns():
     json_matcher.match(template, actual)
 
 
+def test_dict_matcher_returns_values():
+    """Test that the dict matcher returns the values."""
+    patterns = {"uuid": r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"}
+    json_matcher = DictMatcher(patterns)
+
+    template = {
+        "id": "{uuid:identifier}",
+    }
+
+    actual = {
+        "id": "1d408610-f129-47a8-a4c1-1a6e0ca2d16f",
+    }
+    values = json_matcher.match(template, actual)
+
+    assert values is not None
+    assert values["uuid"]["identifier"] == "1d408610-f129-47a8-a4c1-1a6e0ca2d16f"
+    assert id(values) == id(json_matcher.values)
+
+
 def test_dict_matcher_with_simple_patterns():
     """Test dictionary matching with basic pattern placeholders."""
     simple_patterns = {
