@@ -26,7 +26,7 @@ import re
 
 from .exceptions import DictPatternTypeError
 
-MASTER_PATTERN_REGEX = re.compile(r"\{(?P<pattern>[a-z_]+)(?::(?P<identifier>[a-zA-Z0-9_]+))?\}")
+MASTER_PATTERN_REGEX = re.compile(r"\{(?P<pattern>[a-zA-Z0-9_]+)(?::(?P<identifier>[a-zA-Z0-9_]+))?\}")
 
 
 def compile_template(template: str, available_patterns: dict) -> tuple[re.Pattern, list[tuple[str, str]]]:

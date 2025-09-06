@@ -161,3 +161,15 @@ def test_different_same_pattern_types():
     assert fields == [("uuid", "1"), ("uuid", "2")]
     match = regex.match("1d408610-f129-47a8-a4c1-1a6e0ca2d16f/1d408610-f129-47a8-a4c1-1a6e0ca2d16f")
     assert match is not None
+
+
+@pytest.mark.parametrize("pattern_name", ["uuid4", "uuid", "UUID", "uuid_4"])
+def test_different_pattern_names(pattern_name):
+    template = f"{{{pattern_name}:video_id}}/chunk_000001_000009.mp4"
+    pattern_handlers = {pattern_name: r"[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}"}
+
+    regex, fields = compile_template(template, pattern_handlers)
+
+    assert fields == [(pattern_name, "video_id")]
+    match = regex.match("1d408610-f129-47a8-a4c1-1a6e0ca2d16f/chunk_000001_000009.mp4")
+    assert match is not None
