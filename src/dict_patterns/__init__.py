@@ -13,7 +13,7 @@ from .exceptions import (
 )
 from .patterns import compile_template
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 __all__ = [
     "DictMatcher",
